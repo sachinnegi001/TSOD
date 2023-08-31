@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FaCheck } from "react-icons/fa";
 import { ImCross } from "react-icons/im";
-import './Usertable.css';
-
-
-
+import './Usertable.css'
 
 function UserTable() {
   const [data, setData] = useState([]);
+  const [modal, setModal] = useState(false);
+  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,24 +22,29 @@ function UserTable() {
     fetchData();
   }, []);
 
-
-  const [modal, setModal] = useState(false);
-  const toggleModal = () => {
+  const toggleModal = (index) => {
+    setSelectedRowIndex(index);
     setModal(!modal);
   };
 
-  if(modal) {
-    document.body.classList.add('active-modal')
-  } else {
-    document.body.classList.remove('active-modal')
-  }
+  const approveRequest = (index) => {
+    const updatedData = [...data];
+    updatedData[index].status = 'approved';
+    setData(updatedData);
+  };
 
-
-
+  const notapproved = () => {
+    if (selectedRowIndex !== null) {
+      const updatedData = [...data];
+      updatedData[selectedRowIndex].status = 'notapproved';
+      setData(updatedData);
+    }
+    setSelectedRowIndex(null);
+    toggleModal();
+  };
 
   return (
-    <div>
-
+    <div className='mainDiv'>
       <table className='table'>
         <thead>
           <tr style={{ backgroundColor: "#D9D9DC", color: "#595A6C" }}>
@@ -53,58 +57,53 @@ function UserTable() {
           </tr>
         </thead>
         <tbody>
-
-          {
-            data.map((e) => (
-              <tr>
-                <td>{e.ticketName}</td>
-                <td>{e.title}</td>
-                <td>{e.desc}</td>
-                <td>{e.aasuser}</td>
-                <td>{e.logging}</td>
-                <td>
-                  <button className='buttons1'><span className='button'><FaCheck /></span></button>
-                  <button className='buttons2'onClick={toggleModal} ><span className='button' ><ImCross /></span></button>
-                </td>
-                
-              </tr>
-
-
-            ))
-          }
-
-
-
-
-
+          {data.map((e, index) => (
+            <tr key={index}>
+              <td>{e.ticketName}</td>
+              <td>{e.title}</td>
+              <td>{e.desc}</td>
+              <td>{e.aasuser}</td>
+              <td>{e.logging}</td>
+              <td>
+                {e.status === 'approved' ? (
+                  <div id='approve'>Approved</div>
+                ) : e.status === 'notapproved' ? (
+                  <div id='notapprove'>Not Approved</div>
+                ) : (
+                  <>
+                    <button
+                      className='buttons1'
+                      onClick={() => approveRequest(index)}
+                    >
+                      <span className='button'><FaCheck /></span>
+                    </button>
+                    <button className='buttons2' onClick={() => toggleModal(index)}>
+                      <span className='button'><ImCross /></span>
+                    </button>
+                  </>
+                )}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
-
 
       {modal && (
         <div className="modal">
           <div onClick={toggleModal} className="overlay"></div>
           <div className="modal-content">
             <div className='modal-div'>
-              <form  action="" method="post">
-                <input  type="text" name="" id="input" placeholder='Enter Total Time' /><br />
-                <button id='button-inmodel' type="submit">save</button>
+              <form>
+                <input type="text" name="" id="input" placeholder='Enter Total Time' /><br />
+                <button onClick={notapproved}>save</button>
               </form>
             </div>
-
-
-
-
             <button className="close-modal" onClick={toggleModal}>
-            <span className='button' ><ImCross /></span>
-            
+              <span className='button'><ImCross /></span>
             </button>
           </div>
         </div>
       )}
-
-
-
     </div>
   );
 }
